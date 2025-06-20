@@ -1,2 +1,1 @@
-console.log("Hello Tinuu, server is running!");
-
+import connectDB from
