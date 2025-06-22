@@ -1,31 +1,46 @@
-import {v2 as cloudinary} from "cloudinary"
-import fs from "fs"
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+import path from "path";
 
-
+// CLOUDINARY_CLOUD_NAME=dvhcptjgj
+// CLOUDINARY_API_KEY=798432677113178
+// CLOUDINARY_API_SECRET=l_68AZu2UuMK1yQQ3dk-8m1CLk8
 cloudinary.config({ 
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-  api_key: process.env.CLOUDINARY_API_KEY, 
-  api_secret: process.env.CLOUDINARY_API_SECRET 
+  cloud_name: "dvhcptjgj", 
+  api_key: 798432677113178, 
+  api_secret: "l_68AZu2UuMK1yQQ3dk-8m1CLk8" 
 });
 
 const uploadOnCloudinary = async (localFilePath) => {
     try {
-        if (!localFilePath) return null
-        //upload the file on cloudinary
-        const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: "auto"
-        })
-        // file has been uploaded successfull
-        //console.log("file is uploaded on cloudinary ", response.url);
-        fs.unlinkSync(localFilePath)
+        if (!localFilePath) {
+            console.log("❌ No localFilePath provided to Cloudinary.");
+            return null;
+        }
+
+        const resolvedPath = path.resolve(localFilePath);
+        console.log("📤 Uploading file to Cloudinary:", resolvedPath);
+
+        const response = await cloudinary.uploader.upload(resolvedPath, {
+            resource_type: "auto",
+        });
+
+        console.log("✅ Uploaded to Cloudinary:", response.secure_url);
+
+        // Safely delete the temp file
+        if (fs.existsSync(resolvedPath)) {
+            fs.unlinkSync(resolvedPath);
+        }
+
         return response;
 
     } catch (error) {
-        fs.unlinkSync(localFilePath) // remove the locally saved temporary file as the upload operation got failed
+        console.error("❌ Cloudinary upload failed:", error.message);
+        if (fs.existsSync(localFilePath)) {
+            fs.unlinkSync(localFilePath);
+        }
         return null;
     }
-}
+};
 
-
-
-export {uploadOnCloudinary}
+export { uploadOnCloudinary };
